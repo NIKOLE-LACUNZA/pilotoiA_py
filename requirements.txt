@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+gunicorn
 PyPDF2
 faiss-cpu
 openai
