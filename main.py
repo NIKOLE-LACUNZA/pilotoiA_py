@@ -7,10 +7,11 @@ from vector_store import crear_vectorstore, responder_pregunta
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv()  # En local, permite cargar variables del archivo .env
 
 app = FastAPI()
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,11 +20,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Configura la API Key al iniciar la aplicación
+@app.on_event("startup")
+def startup_event():
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    print("Clave OpenAI cargada:", "✅" if openai.api_key else "❌ (no encontrada)")
 
-# Carga el PDF y crea el vectorstore al iniciar
-texto = cargar_pdf("documentos/DS009-2025-EF-Reglamento-ley-de-contrataciones.publicas.pdf")
-vectorstore = crear_vectorstore(texto)
+    # Carga y vectoriza el documento
+    global vectorstore
+    texto = cargar_pdf("documentos/DS009-2025-EF-Reglamento-ley-de-contrataciones.publicas.pdf")
+    vectorstore = crear_vectorstore(texto)
 
 class Pregunta(BaseModel):
     mensaje: str
