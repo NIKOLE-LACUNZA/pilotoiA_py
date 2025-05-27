@@ -13,6 +13,7 @@ from vector_store import crear_y_guardar_vectorstore, responder_pregunta
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from fastapi import BackgroundTasks
+from vector_store import procesar_y_guardar_vectorstore
 
 # Cargar variables de entorno (solo en local)
 load_dotenv()
