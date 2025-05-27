@@ -1,10 +1,15 @@
 import os
+import io
 import openai
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 from dotenv import load_dotenv
-from vector_store import responder_pregunta
+from loader import cargar_pdf, cargar_pdf_bytes
+from loader import cargar_pdf_bytes
+from vector_store import crear_y_guardar_vectorstore, responder_pregunta
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
@@ -62,3 +67,20 @@ def chat(pregunta: Pregunta):
         import traceback
         print("❌ Excepción en /api/chat:", traceback.format_exc())
         return {"error": str(e)}
+    
+@app.post("/api/subir-documento")
+async def subir_documento(file: UploadFile = File(...)):
+    try:
+        contenido_pdf = await file.read()
+        texto = await run_in_threadpool(cargar_pdf_bytes, io.BytesIO(contenido_pdf))
+        nombre_base = os.path.splitext(file.filename)[0]
+        ruta_vectorstore = f"vector_db_{nombre_base}"
+
+        await run_in_threadpool(crear_y_guardar_vectorstore, texto, ruta_vectorstore)
+
+        return JSONResponse(
+            content={"mensaje": f"Vector creado y guardado en {ruta_vectorstore}"},
+            status_code=200
+        )
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
