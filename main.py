@@ -60,7 +60,7 @@ class Pregunta(BaseModel):
 @app.post("/api/chat")
 def chat(pregunta: Pregunta):
     try:
-        ruta_vectorstore = f"vector_db_{pregunta.documento}"
+        ruta_vectorstore = f"/tpm/vector_db_{pregunta.documento}"
         vectorstore = FAISS.load_local(
             ruta_vectorstore,
             OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY")),
