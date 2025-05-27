@@ -12,6 +12,7 @@ from loader import cargar_pdf_bytes
 from vector_store import crear_y_guardar_vectorstore, responder_pregunta
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
+from fastapi import BackgroundTasks
 
 # Cargar variables de entorno (solo en local)
 load_dotenv()
@@ -74,18 +75,23 @@ def chat(pregunta: Pregunta):
         return {"error": str(e)}
     
 @app.post("/api/subir-documento")
-async def subir_documento(file: UploadFile = File(...)):
+async def subir_documento(
+    file: UploadFile = File(...), 
+    background_tasks: BackgroundTasks = None
+):
     try:
         contenido_pdf = await file.read()
-        texto = await run_in_threadpool(cargar_pdf_bytes, io.BytesIO(contenido_pdf))
         nombre_base = os.path.splitext(file.filename)[0]
         ruta_vectorstore = f"vector_db_{nombre_base}"
 
-        await run_in_threadpool(crear_y_guardar_vectorstore, texto, ruta_vectorstore)
+        # Lanza la tarea en background (sin bloquear la respuesta)
+        background_tasks.add_task(procesar_y_guardar_vectorstore, contenido_pdf, ruta_vectorstore)
 
+        # Responde rápido sin esperar que termine el proceso pesado
         return JSONResponse(
-            content={"mensaje": f"Vector creado y guardado en {ruta_vectorstore}"},
-            status_code=200
+            content={"mensaje": f"Vectorstore se está creando en background para {ruta_vectorstore}"},
+            status_code=202
         )
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
