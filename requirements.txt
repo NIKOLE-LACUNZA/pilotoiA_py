@@ -9,3 +9,5 @@ langchain
 tiktoken
 langchain-community
 langchain-openai
+python-multipart
+io  

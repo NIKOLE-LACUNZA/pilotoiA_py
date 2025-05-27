@@ -54,13 +54,18 @@ def home():
 # Modelo de entrada
 class Pregunta(BaseModel):
     mensaje: str
+    documento: str
 
 # Endpoint principal
 @app.post("/api/chat")
 def chat(pregunta: Pregunta):
     try:
-        if not vectorstore:
-            return {"error": "Vectorstore no está cargado"}
+        ruta_vectorstore = f"vector_db_{pregunta.documento}"
+        vectorstore = FAISS.load_local(
+            ruta_vectorstore,
+            OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY")),
+            allow_dangerous_deserialization=True
+        )
         respuesta = responder_pregunta(pregunta.mensaje, vectorstore)
         return {"respuesta": respuesta}
     except Exception as e:
