@@ -23,6 +23,8 @@ def crear_y_guardar_vectorstore(texto: str, carpeta: str):
     
 def procesar_y_guardar_vectorstore(contenido_pdf: bytes, ruta_vectorstore: str):
     import io
+    from loader import cargar_pdf_bytes
+    from vector_store import crear_y_guardar_vectorstore
     texto = cargar_pdf_bytes(io.BytesIO(contenido_pdf))
     crear_y_guardar_vectorstore(texto, ruta_vectorstore)
 

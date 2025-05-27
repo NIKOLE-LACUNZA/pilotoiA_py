@@ -10,7 +10,8 @@ def cargar_pdf(path: str) -> str:
         return texto
 
 def cargar_pdf_bytes(pdf_bytes: bytes) -> str:
-    reader = PdfReader(pdf_bytes)
+    stream = io.BytesIO(pdf_bytes)
+    reader = PdfReader(stream)
     texto = ""
     for page in reader.pages:
         texto += page.extract_text() or ""
