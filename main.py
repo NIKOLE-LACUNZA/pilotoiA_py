@@ -62,7 +62,11 @@ class Pregunta(BaseModel):
 @app.post("/api/chat")
 def chat(pregunta: Pregunta):
     try:
-        ruta_vectorstore = f"./vectorstores/vector_db_{pregunta.documento}"
+        ruta_vectorstore = f"./vectorstores/vector_db_{pregunta.documento}" 
+        if not os.path.exists(os.path.join(ruta_vectorstore, "index.faiss")):
+            return {
+                "error": f"El vectorstore para '{pregunta.documento}' aún no está listo. Intenta en unos segundos."
+            }
         vectorstore = FAISS.load_local(
             ruta_vectorstore,
             OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY")),
@@ -82,8 +86,8 @@ async def subir_documento(
 ):
     try:
         contenido_pdf = await file.read()
-        nombre_base = os.path.splitext(file.filename)[0]
-        ruta_vectorstore = f"vector_db_{nombre_base}"
+        nombre_base = os.path.splitext(file.filename)[0].replace(" ", "_")
+        ruta_vectorstore = f"./vectorstores/vector_db_{nombre_base}"
         os.makedirs("vectorstores", exist_ok=True) 
         # Lanza la tarea en background (sin bloquear la respuesta)
         background_tasks.add_task(procesar_y_guardar_vectorstore, contenido_pdf, ruta_vectorstore)

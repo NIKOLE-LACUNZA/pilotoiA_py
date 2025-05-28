@@ -1,5 +1,5 @@
 from PyPDF2 import PdfReader
-
+import io
 
 def cargar_pdf(path: str) -> str:
     with open(path, "rb") as file:
