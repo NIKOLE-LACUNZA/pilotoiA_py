@@ -62,7 +62,7 @@ class Pregunta(BaseModel):
 @app.post("/api/chat")
 def chat(pregunta: Pregunta):
     try:
-        ruta_vectorstore = f"/tmp/vector_db_{pregunta.documento}"
+        ruta_vectorstore = f"./vectorstores/vector_db_{pregunta.documento}"
         vectorstore = FAISS.load_local(
             ruta_vectorstore,
             OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY")),
@@ -84,7 +84,7 @@ async def subir_documento(
         contenido_pdf = await file.read()
         nombre_base = os.path.splitext(file.filename)[0]
         ruta_vectorstore = f"vector_db_{nombre_base}"
-
+        os.makedirs("vectorstores", exist_ok=True) 
         # Lanza la tarea en background (sin bloquear la respuesta)
         background_tasks.add_task(procesar_y_guardar_vectorstore, contenido_pdf, ruta_vectorstore)
 
